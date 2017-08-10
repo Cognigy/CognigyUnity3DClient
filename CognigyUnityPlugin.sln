@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CognigyUnityPlugin", "CognigyUnityPlugin.csproj", "{A5F60CEB-A81A-6A5C-4285-1E9F8686DFEA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CognigyUnityPlugin.Plugins", "CognigyUnityPlugin.Plugins.csproj", "{59516C44-FBD1-8D4A-6D7C-E44721CE7FB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CognigyUnityPlugin.Editor", "CognigyUnityPlugin.Editor.csproj", "{9EDF3462-A9E2-D52E-C4E3-A2009184E2CC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A5F60CEB-A81A-6A5C-4285-1E9F8686DFEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5F60CEB-A81A-6A5C-4285-1E9F8686DFEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5F60CEB-A81A-6A5C-4285-1E9F8686DFEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5F60CEB-A81A-6A5C-4285-1E9F8686DFEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59516C44-FBD1-8D4A-6D7C-E44721CE7FB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59516C44-FBD1-8D4A-6D7C-E44721CE7FB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59516C44-FBD1-8D4A-6D7C-E44721CE7FB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59516C44-FBD1-8D4A-6D7C-E44721CE7FB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EDF3462-A9E2-D52E-C4E3-A2009184E2CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EDF3462-A9E2-D52E-C4E3-A2009184E2CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EDF3462-A9E2-D52E-C4E3-A2009184E2CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EDF3462-A9E2-D52E-C4E3-A2009184E2CC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

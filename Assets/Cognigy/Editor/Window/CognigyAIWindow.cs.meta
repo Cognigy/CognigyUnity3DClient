@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 32319f6f18217d84fb8822865698b2de
+timeCreated: 1502189034
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - guiSkin: {fileID: 11400000, guid: 2717cea3e5839e44f8de962ffee1a470, type: 2}
+  - cognigyLogo: {fileID: 2800000, guid: 097c830fba229e6489d42a9f67f5a9e9, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

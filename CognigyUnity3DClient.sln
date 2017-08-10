@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CognigyUnity3DClient", "CognigyUnity3DClient.csproj", "{4955AB3B-A484-D0BB-D4A1-C28DF7F2B382}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CognigyUnity3DClient.Plugins", "CognigyUnity3DClient.Plugins.csproj", "{FA6B9091-FC5C-5942-60A8-1CDD61436888}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CognigyUnity3DClient.Editor", "CognigyUnity3DClient.Editor.csproj", "{0CEFAF84-6D8F-58FE-0DD5-9DEF9C5622AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4955AB3B-A484-D0BB-D4A1-C28DF7F2B382}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4955AB3B-A484-D0BB-D4A1-C28DF7F2B382}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4955AB3B-A484-D0BB-D4A1-C28DF7F2B382}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4955AB3B-A484-D0BB-D4A1-C28DF7F2B382}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA6B9091-FC5C-5942-60A8-1CDD61436888}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA6B9091-FC5C-5942-60A8-1CDD61436888}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA6B9091-FC5C-5942-60A8-1CDD61436888}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA6B9091-FC5C-5942-60A8-1CDD61436888}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CEFAF84-6D8F-58FE-0DD5-9DEF9C5622AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CEFAF84-6D8F-58FE-0DD5-9DEF9C5622AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CEFAF84-6D8F-58FE-0DD5-9DEF9C5622AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CEFAF84-6D8F-58FE-0DD5-9DEF9C5622AA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

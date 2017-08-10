@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CognigyForUnity", "CognigyForUnity.csproj", "{0AA54B97-00F3-51A6-1FB1-E6A1BA208226}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CognigyForUnity.Plugins", "CognigyForUnity.Plugins.csproj", "{EBB3FB9A-3EFE-366D-8FC7-8C5806979A1F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CognigyForUnity.Editor", "CognigyForUnity.Editor.csproj", "{7A42A612-7920-A400-5EFF-9904567A64DD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0AA54B97-00F3-51A6-1FB1-E6A1BA208226}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AA54B97-00F3-51A6-1FB1-E6A1BA208226}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AA54B97-00F3-51A6-1FB1-E6A1BA208226}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AA54B97-00F3-51A6-1FB1-E6A1BA208226}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBB3FB9A-3EFE-366D-8FC7-8C5806979A1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBB3FB9A-3EFE-366D-8FC7-8C5806979A1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBB3FB9A-3EFE-366D-8FC7-8C5806979A1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBB3FB9A-3EFE-366D-8FC7-8C5806979A1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A42A612-7920-A400-5EFF-9904567A64DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A42A612-7920-A400-5EFF-9904567A64DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A42A612-7920-A400-5EFF-9904567A64DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A42A612-7920-A400-5EFF-9904567A64DD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
