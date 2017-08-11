@@ -1,4 +1,4 @@
-# CognigyUnityPlugin 
+# CognigyUnity3DClient
 ## About
 The Cognigy Unity3D plugin provides primarily the Cognigy AI service. There are in addition components which can be used to easily implement speech to text and text to speech services. Right now the plugin supports:
 #### Speech To Text
