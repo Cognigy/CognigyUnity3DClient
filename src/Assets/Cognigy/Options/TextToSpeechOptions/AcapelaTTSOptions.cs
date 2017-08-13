@@ -6,6 +6,30 @@ using UnityEngine;
 [Serializable]
 public class AcapelaTTSOptions : TextToSpeechOptions
 {
+    public override ServiceType ServiceType
+    {
+        get
+        {
+            return ServiceType.Text_To_Speech;
+        }
+    }
+
+    public override string ServiceName
+    {
+        get
+        {
+            return "Acapela";
+        }
+    }
+
+    public override Type ServiceImplementation
+    {
+        get
+        {
+            return typeof(AcapelaTTS);
+        }
+    }
+
     [SerializeField]
     public string VaasUrl;
     [SerializeField]
@@ -14,9 +38,4 @@ public class AcapelaTTSOptions : TextToSpeechOptions
     public string Password;
     [SerializeField]
     public string App;
-
-    public override Type GetServiceType()
-    {
-        return this.ServiceType = typeof(AcapelaTTS);
-    }
 }

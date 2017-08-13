@@ -6,7 +6,7 @@ using UnityEngine;
 public class TextToSpeechOptions : ServiceOptions
 {
     [SerializeField]
-    public int Voice;
+    public int Voice = 0;
     [SerializeField]
     public int Rate;
 }

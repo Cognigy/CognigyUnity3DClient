@@ -1,21 +1,9 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 
-public class OptionsDrawer : EditorWindow
+/// <summary>
+/// Draws the specific options into the editor (Window/Inspector)
+/// </summary>
+public abstract class OptionsDrawer : EditorWindow
 {
-    protected OptionsWindow optionsWindow;
-
-    public void SetWindow(OptionsWindow optionsWindow)
-    {
-        this.optionsWindow = optionsWindow;
-    }
-
-    public virtual void Initialize() { }
-
-    public virtual void DrawOptions() { }
-
-    public virtual ServiceOptions GetOptions()
-    {
-        throw new NotImplementedException();
-    }
+    public abstract void DrawOptions<TOptions>(TOptions serviceOptions) where TOptions : ServiceOptions;
 }
