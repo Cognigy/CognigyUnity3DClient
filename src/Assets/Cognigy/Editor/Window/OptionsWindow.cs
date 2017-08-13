@@ -1,164 +1,75 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 //Creates and/or attaches options
-public abstract class OptionsWindow<TServiceComponent> : EditorWindow where TServiceComponent : ServiceComponent
+public class OptionsWindow : EditorWindow
 {
-    [SerializeField]
-    protected GUISkin guiSkin;
-
     protected OptionsDrawer currentDrawer;
-    protected ServiceOptions currentOptions;
+    protected string serviceType = "";
+    public bool hasSelection;
 
-    protected string selectedObject = "none";
-
-    protected Dictionary<Type, ServiceOptions> typesAndServices = new Dictionary<Type, ServiceOptions>();
-
-    protected bool hasSelection;
-
-    public virtual void AttachOptions(ServiceOptions serviceOptions)
-    {
-        if (EditorUtility.DisplayDialog
-            (
-            serviceOptions.ServiceType.ToString().Replace("_", " "),
-            serviceOptions.ServiceName + " Do you want to attach " + serviceOptions.ServiceType.ToString() + " to:\n" + Selection.activeTransform.gameObject.name,
-            "Attach",
-            "Cancel"
-            ))
-        {
-            string typeAbbrev = string.Empty;
-
-            switch (serviceOptions.ServiceType)
-            {
-                case ServiceType.Cognigy_AI:
-                    typeAbbrev = "AI";
-                    break;
-
-                case ServiceType.Speech_To_Text:
-                    typeAbbrev = "STT";
-                    break;
-                case ServiceType.Text_To_Speech:
-                    typeAbbrev = "TTS";
-                    break;
-            }
-
-            string path = "Assets";
-
-            string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + typeAbbrev + "_" + serviceOptions.ServiceName + ".asset");
-
-            AssetDatabase.CreateAsset(serviceOptions, assetPathAndName);
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            TServiceComponent serviceComponent;
-
-
-            if ((serviceComponent = (TServiceComponent)Selection.activeTransform.gameObject.GetComponent(typeof(TServiceComponent))) == null)
-                serviceComponent = (TServiceComponent)Selection.activeTransform.gameObject.AddComponent(typeof(TServiceComponent));
-
-            serviceComponent.serviceOptions = serviceOptions;
-
-            SetFocus(serviceComponent);
-
-            this.Close();
-        }
-
-
-    }
+    public virtual void AttachOptions(ServiceOptions serviceOptions) { }
     public virtual void CreateOptions(ServiceOptions serviceOptions)
     {
-        if (EditorUtility.DisplayDialog
-            (
-            serviceOptions.ServiceType.ToString().Replace("_", " "),
-            serviceOptions.ServiceName + " Do you want to create these " + serviceOptions.ServiceType.ToString().Replace("_", " ") + " settings?",
-            "Create",
-            "Cancel"
-            ))
-        {
-            string typeAbbrev = string.Empty;
+        string path = "Assets";
 
-            switch (serviceOptions.ServiceType)
-            {
-                case ServiceType.Cognigy_AI:
-                    typeAbbrev = "AI";
-                    break;
+        string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + serviceType + "_" + serviceOptions.ServiceName + ".asset");
 
-                case ServiceType.Speech_To_Text:
-                    typeAbbrev = "STT";
-                    break;
-                case ServiceType.Text_To_Speech:
-                    typeAbbrev = "TTS";
-                    break;
-            }
+        AssetDatabase.CreateAsset(serviceOptions, assetPathAndName);
 
-            string path = "Assets";
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
 
-            string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + typeAbbrev + "_" + serviceOptions.ServiceName + ".asset");
-
-            AssetDatabase.CreateAsset(serviceOptions, assetPathAndName);
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            SetFocus(serviceOptions);
-            EditorUtility.FocusProjectWindow();
-
-            this.Close();
-        }
+        Selection.activeObject = serviceOptions;
+        EditorUtility.FocusProjectWindow();
     }
 
-    public virtual void SetDrawer()
+    public virtual OptionsDrawer SetDrawer()
     {
-        currentDrawer = CreateInstance<DefaultDrawer>();
-        currentOptions = CreateInstance<ServiceOptions>();
+        return null;
     }
-
-    public abstract void WindowSetup();
-
-    public virtual void GuiSkinSetup() { }
 
     public virtual void DrawHeader() { }
 
     public virtual void DrawSelector() { }
 
-    protected void Awake()
+    protected void DrawCreateButton()
     {
-        WindowSetup();
+        if (GUILayout.Button("Create Options"))
+        {
+            CreateOptions(currentDrawer.GetOptions());
+
+            this.Close();
+        }
+    }
+
+    protected void DrawAttachButton()
+    {
+        using (new EditorGUI.DisabledScope(hasSelection == false))
+        {
+            if (GUILayout.Button("Attach " + serviceType))
+            {
+                AttachOptions(currentDrawer.GetOptions());
+
+                this.Close();
+            }
+        }
     }
 
     protected void OnGUI()
     {
         if (Selection.activeTransform != null)
-        {
             hasSelection = true;
-            selectedObject = Selection.activeTransform.gameObject.name;
-        }
         else
-        {
             hasSelection = false;
-            selectedObject = "none";
-        }
 
-        GuiSkinSetup();
         DrawHeader();
         DrawSelector();
 
-        OptionsLayout.HorizontalLine(this.guiSkin);
+        currentDrawer = SetDrawer();
+        currentDrawer.DrawOptions();
 
         GUILayout.Space(10);
-
-        SetDrawer();
-        currentDrawer.DrawOptions(currentOptions);
-        Repaint();
-
-        GUILayout.Space(12);
-
-        OptionsLayout.HorizontalLine(this.guiSkin);
-
-        GUILayout.Space(12);
 
         GUILayout.BeginHorizontal();
         DrawCreateButton();
@@ -169,29 +80,5 @@ public abstract class OptionsWindow<TServiceComponent> : EditorWindow where TSer
     protected void OnInspectorUpdate()
     {
         Repaint();
-    }
-
-    protected void DrawCreateButton()
-    {
-        if (GUILayout.Button("Create Options", guiSkin.GetStyle("CreateButton")))
-        {
-            CreateOptions(currentOptions);
-        }
-    }
-
-    protected void DrawAttachButton()
-    {
-        using (new EditorGUI.DisabledScope(hasSelection == false))
-        {
-            if (GUILayout.Button("Attach", guiSkin.GetStyle("AttachButton")))
-            {
-                AttachOptions(currentOptions);
-            }
-        }
-    }
-
-    protected void SetFocus(UnityEngine.Object target)
-    {
-        Selection.activeObject = target;
     }
 }

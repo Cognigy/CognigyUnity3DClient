@@ -1,11 +1,11 @@
 ﻿using System;
 using UnityEngine;
 
-public abstract class SpeechToTextService : MonoBehaviour
+public class SpeechToTextService : MonoBehaviour
 {
     public event EventHandler<SpeechToTextResultEventArgs> STTResult;
 
-    public abstract void Initialize(SpeechToTextOptions speechToTextOptions);
+    public virtual void Initialize(SpeechToTextOptions speechToTextOptions) { }
 
     public virtual void DisableSpeechToText()
     {

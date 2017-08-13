@@ -6,8 +6,10 @@ public enum SpeechToTextProvider
     Windows
 }
 
-public class SpeechToTextWindow : OptionsWindow<SpeechToText>
+public class SpeechToTextWindow : OptionsWindow
 {
+    [SerializeField]
+    private GUISkin guiSkin;
     private SpeechToTextProvider speechToTextProvider;
 
     [MenuItem("Window/Cognigy/Speech To Text")]
@@ -16,13 +18,13 @@ public class SpeechToTextWindow : OptionsWindow<SpeechToText>
         EditorWindow.GetWindow(typeof(SpeechToTextWindow));
     }
 
-    public override void WindowSetup()
+    private void Awake()
     {
+        serviceType = "STT";
         this.minSize = new Vector2(400, 400);
     }
 
-
-    public override void SetDrawer()
+    public override OptionsDrawer SetDrawer()
     {
         switch (speechToTextProvider)
         {
@@ -30,15 +32,36 @@ public class SpeechToTextWindow : OptionsWindow<SpeechToText>
                 if (currentDrawer == null || currentDrawer.GetType() != typeof(WindowsSTTOptionsDrawer))
                 {
                     currentDrawer = CreateInstance<WindowsSTTOptionsDrawer>();
-                    currentOptions = CreateInstance<WindowsSTTOptions>();
+                    currentDrawer.Initialize();
+                    currentDrawer.SetWindow(this);
                 }
-                break;
+
+                return currentDrawer;
 
             default:
-                currentDrawer = CreateInstance<DefaultDrawer>();
-                currentOptions = CreateInstance<ServiceOptions>();
-                break;
+                return null;
         }
+    }
+
+    public override void AttachOptions(ServiceOptions serviceOptions)
+    {
+        string path = "Assets";
+
+        string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + serviceType + "_" + serviceOptions.ServiceName + ".asset");
+
+        AssetDatabase.CreateAsset(serviceOptions, assetPathAndName);
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        SpeechToText sttComponent;
+
+        if ((sttComponent = Selection.activeTransform.gameObject.GetComponent<SpeechToText>()) == null)
+            sttComponent = Selection.activeTransform.gameObject.AddComponent<SpeechToText>();
+
+        sttComponent.speechToTextOptions = (SpeechToTextOptions)serviceOptions;
+
+        EditorUtility.DisplayDialog("Speech To Text", serviceOptions.ServiceName + " attached to character(s):\n" + Selection.activeTransform.gameObject.name, "Ok");
     }
 
     public override void DrawHeader()
@@ -56,5 +79,4 @@ public class SpeechToTextWindow : OptionsWindow<SpeechToText>
         speechToTextProvider = (SpeechToTextProvider)EditorGUILayout.EnumPopup(speechToTextProvider, GUI.skin.GetStyle("customEnum"));
         GUILayout.Space(10);
     }
-
 }

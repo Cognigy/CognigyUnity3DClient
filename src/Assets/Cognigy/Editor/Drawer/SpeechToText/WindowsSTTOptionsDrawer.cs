@@ -9,47 +9,40 @@ public class WindowsSTTOptionsDrawer : OptionsDrawer
 
     private string autoSilenceTimeoutSecondsTemp = string.Empty;
 
-    public override void DrawOptions<TOptions>(TOptions serviceOptions)
+    public override void Initialize()
     {
-        windowsSTTOptions = serviceOptions as WindowsSTTOptions;
+        windowsSTTOptions = CreateInstance<WindowsSTTOptions>();
+        windowsSTTOptions.ServiceName = "Windows";
+    }
 
+    public override void DrawOptions()
+    {
 #if UNITY_EDITOR_WIN
-        DrawExplanationBox();
+        GUILayout.BeginVertical("box");
+        GUILayout.Label("The Windows Dictation Recognizer uses the default system language for it's speech recognition and can only be run on Windows 10.\n\n" +
+            "Your System Language is: " + Application.systemLanguage.ToString());
+        GUILayout.EndVertical();
 
         GUILayout.Space(20);
 
-        DrawConfidenceEnum();
+        GUILayout.Label("Confidence Level");
+        windowsSTTOptions.ConfidenceLevel = (ConfidenceLevel)EditorGUILayout.EnumPopup((ConfidenceLevel)windowsSTTOptions.ConfidenceLevel, GUI.skin.GetStyle("customEnum"));
 
         GUILayout.Space(20);
 
-        DrawAutoSilenceField();
+        GUILayout.Label(new GUIContent("Auto Silence Timeout", "The time length in seconds before dictation recognizer ends due lack if audio input"));
+        autoSilenceTimeoutSecondsTemp = GUILayout.TextField(autoSilenceTimeoutSecondsTemp);
+        autoSilenceTimeoutSecondsTemp = Regex.Replace(autoSilenceTimeoutSecondsTemp, "[^0-9]", "");
+        float.TryParse(autoSilenceTimeoutSecondsTemp, out windowsSTTOptions.AutoSilenceTimeoutSeconds);
+
 #else
         GUILayout.Label("Service not supported on your platform");
 
 #endif
     }
 
-    #region GuiElements
-    private void DrawExplanationBox()
+    public override ServiceOptions GetOptions()
     {
-        GUILayout.BeginVertical("box");
-        GUILayout.Label("The Windows Dictation Recognizer uses the default system language for it's speech recognition and can only be run on Windows 10.\n\n" +
-            "Your System Language is: " + Application.systemLanguage.ToString());
-        GUILayout.EndVertical();
+        return this.windowsSTTOptions;
     }
-
-    private void DrawConfidenceEnum()
-    {
-        GUILayout.Label("Confidence Level");
-        windowsSTTOptions.ConfidenceLevel = (ConfidenceLevel)EditorGUILayout.EnumPopup((ConfidenceLevel)windowsSTTOptions.ConfidenceLevel, GUI.skin.GetStyle("customEnum"));
-    }
-
-    private void DrawAutoSilenceField()
-    {
-        GUILayout.Label(new GUIContent("Auto Silence Timeout", "The time length in seconds before dictation recognizer ends due lack if audio input"));
-        autoSilenceTimeoutSecondsTemp = GUILayout.TextField(autoSilenceTimeoutSecondsTemp);
-        autoSilenceTimeoutSecondsTemp = Regex.Replace(autoSilenceTimeoutSecondsTemp, "[^0-9]", "");
-        float.TryParse(autoSilenceTimeoutSecondsTemp, out windowsSTTOptions.AutoSilenceTimeoutSeconds);
-    }
-    #endregion
 }

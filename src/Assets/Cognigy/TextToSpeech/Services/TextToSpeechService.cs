@@ -1,13 +1,17 @@
 ﻿using System;
 using UnityEngine;
 
-public abstract class TextToSpeechService : MonoBehaviour
+public class TextToSpeechService : MonoBehaviour
 {
     public event EventHandler<TextToSpeechResultEventArgs> TTSResult;
 
-    public abstract void Initialize(TextToSpeechOptions textToSpeechOptions);
+    public virtual void Initialize(TextToSpeechOptions textToSpeechOptions)
+    {
+    }
 
-    public abstract void ProcessTextToAudio(string input);
+    public virtual void ProcessTextToAudio(string input)
+    {
+    }
 
     protected virtual void OnTTSResult(TextToSpeechResultEventArgs args)
     {

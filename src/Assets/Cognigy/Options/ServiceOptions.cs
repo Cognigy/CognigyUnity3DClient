@@ -1,40 +1,17 @@
 ﻿using System;
 using UnityEngine;
 
-public enum ServiceType
-{
-    Cognigy_AI,
-    Speech_To_Text,
-    Text_To_Speech
-}
-
 [Serializable]
 public class ServiceOptions : ScriptableObject
 {
     [SerializeField]
-    public virtual ServiceType ServiceType
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public string ServiceName;
 
     [SerializeField]
-    public virtual string ServiceName
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    protected Type ServiceType;
 
-    [SerializeField]
-    public virtual Type ServiceImplementation
+    public virtual Type GetServiceType()
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
+        return this.ServiceType;
     }
 }

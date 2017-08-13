@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class SpeechLibTTSOptionsDrawer : OptionsDrawer
 {
-    private SpeechLibTTSOptions serviceOptions;
+    private SpeechLibTTSOptions speechLibOptions;
 
     private string rateTemp = string.Empty;
     private string volumeTemp = string.Empty;
@@ -13,24 +13,16 @@ public class SpeechLibTTSOptionsDrawer : OptionsDrawer
     private string[] voices;
     private int selection = 0;
 
-    public override void DrawOptions<TOptions>(TOptions serviceOptions)
+    public override void Initialize()
     {
-        this.serviceOptions = serviceOptions as SpeechLibTTSOptions;
-
-        DrawExplanationLabel();
-
-        DrawVoicePopup();
-
-        GUILayout.Space(20);
-
-        DrawRateField();
-
-        DrawVolumeField();
+        speechLibOptions = CreateInstance<SpeechLibTTSOptions>();
+        speechLibOptions.ServiceName = "SpeechLib";
     }
 
-    #region GuiElements
-    private void DrawVoicePopup()
+    public override void DrawOptions()
     {
+        DrawExplanationLabel();
+
         SpObjectTokenCategory tokenCategory = new SpObjectTokenCategory();
         tokenCategory.SetId(SpeechLib.SpeechStringConstants.SpeechCategoryVoices, false);
         ISpeechObjectTokens tokens = tokenCategory.EnumerateTokens(null, null);
@@ -45,28 +37,28 @@ public class SpeechLibTTSOptionsDrawer : OptionsDrawer
         }
 
         selection = EditorGUILayout.Popup(selection, voices, GUI.skin.GetStyle("customEnum"));
-        serviceOptions.Voice = selection;
-    }
+        speechLibOptions.Voice = selection;
 
-    private void DrawRateField()
-    {
+        GUILayout.Space(20);
+
         GUILayout.Label("Rate");
         rateTemp = GUILayout.TextField(rateTemp);
         rateTemp = Regex.Replace(rateTemp, "[^0-9]", "");
-        int.TryParse(rateTemp, out serviceOptions.Rate);
-    }
+        int.TryParse(rateTemp, out speechLibOptions.Rate);
 
-    private void DrawVolumeField()
-    {
         GUILayout.Label("Volume");
         volumeTemp = GUILayout.TextField(volumeTemp);
         volumeTemp = Regex.Replace(volumeTemp, "[^0-9]", "");
-        int.TryParse(volumeTemp, out serviceOptions.Volume);
+        int.TryParse(volumeTemp, out speechLibOptions.Volume);
+    }
+
+    public override ServiceOptions GetOptions()
+    {
+        return this.speechLibOptions;
     }
 
     private void DrawExplanationLabel()
     {
         GUILayout.Label("The SpeechLib Text to Speech services uses the installed TTS voices and works offline.");
     }
-    #endregion
 }
