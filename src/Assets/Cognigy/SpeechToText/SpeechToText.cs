@@ -1,8 +1,12 @@
 ﻿using System;
 using UnityEngine;
 
+/// <summary>
+/// Creates Speech to Text service depending on inserted options
+/// and provides method for the usage of the specific Speech to Text service
+/// </summary>
 [AddComponentMenu("Speech To Text")]
-public class SpeechToText : MonoBehaviour
+public class SpeechToText : ServiceComponent
 {
     /// <summary>
     /// Provides the result from the selected speech to text service
@@ -25,25 +29,26 @@ public class SpeechToText : MonoBehaviour
         }
     }
 
-    [SerializeField]
-    public SpeechToTextOptions speechToTextOptions;
+    /// <summary>
+    /// Reference to the specific Speech to Text service
+    /// </summary>
     private SpeechToTextService speechToTextService;
 
     private void Awake()
     {
-        if (speechToTextOptions != null)
+        if (serviceOptions != null && serviceOptions is SpeechToTextOptions)
         {
-            speechToTextService = gameObject.AddComponent(speechToTextOptions.GetServiceType()) as SpeechToTextService;
-            speechToTextService.Initialize(speechToTextOptions);
+            speechToTextService = gameObject.AddComponent(serviceOptions.ServiceImplementation) as SpeechToTextService;
+            speechToTextService.Initialize(serviceOptions as SpeechToTextOptions);
         }
         else
         {
-            ErrorLogger.LogNoSTTOptions();
+            ErrorLogger.LogNoOptions("Speech To Text", gameObject.name);
         }
     }
 
     /// <summary>
-    ///enables speech to text streaming service for listening
+    ///enables speech to text streaming service for listening to speech input
     /// </summary>
     public void EnableSpeechToText()
     {

@@ -36,6 +36,8 @@ namespace Cognigy
         [SerializeField]
         public bool Reconnection = true;
         [SerializeField]
+        public bool ListenToStep = false;
+        [SerializeField]
         public int Interval = 10000;
         [SerializeField]
         public bool ResetState = false;

@@ -1,7 +1,6 @@
 ﻿using Cognigy.Utility;
-using Quobject.SocketIoClientDotNet.Collections.Concurrent;
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
@@ -29,9 +28,16 @@ namespace Cognigy
         private AIClient aiClient;
 
         private bool hasSubscribed;
+        private bool listensToStepEvents;
 
-        private ConcurrentQueue<OutputEventArgs> outputEventArgs = new ConcurrentQueue<OutputEventArgs>();
-        private ConcurrentQueue<StepEventArgs> stepEventArgs = new ConcurrentQueue<StepEventArgs>();
+        private static List<StepEventArgs> stepEventForMain = new List<StepEventArgs>();
+        private List<StepEventArgs> stepEventCopiedForMain = new List<StepEventArgs>();
+
+        private static List<OutputEventArgs> outputEventForMain = new List<OutputEventArgs>();
+        private List<OutputEventArgs> outputEventCopiedForMain = new List<OutputEventArgs>();
+
+        private volatile static bool noOutputEventForMain = true;
+        private volatile static bool noStepEventForMain = true;
 
         private CancellationTokenSource aiCancelTokenSource;
 
@@ -52,14 +58,19 @@ namespace Cognigy
                     aiClient.Disconnect();
 
                 aiClient = new AIClient(this.aiOptions);
-                aiClient.OnOutput += EnqueueOutput;
-                aiClient.OnStep += EnqueueStep;
+
+                aiClient.OnOutput += StoreOutputEvent;
+
+                if (aiOptions.ListenToStep)
+                {
+                    listensToStepEvents = true;
+                    aiClient.OnStep += StoreStepEvent;
+                }
+
                 hasSubscribed = true;
 
                 aiCancelTokenSource = new CancellationTokenSource();
                 ClientConnectionPacket aiClientPacket = new ClientConnectionPacket(this.aiClient, aiCancelTokenSource.Token, millisecondsTimeout);
-
-                aiPollingRoutine = StartCoroutine(AIPollResult());
 
                 ThreadPool.QueueUserWorkItem(ConnectClient, aiClientPacket);
             }
@@ -80,8 +91,8 @@ namespace Cognigy
 
                 if (hasSubscribed)
                 {
-                    aiClient.OnOutput -= EnqueueOutput;
-                    aiClient.OnStep -= EnqueueStep;
+                    aiClient.OnOutput -= StoreOutputEvent;
+                    aiClient.OnStep -= StoreStepEvent;
                     hasSubscribed = false;
                 }
 
@@ -104,7 +115,10 @@ namespace Cognigy
             {
                 try
                 {
-                    aiClient.SendMessage<object>(message.ToLower(), null);
+                    ThreadPool.QueueUserWorkItem((cb) =>
+                    {
+                        aiClient.SendMessage<object>(message, null);
+                    });
                 }
                 catch (Exception e)
                 {
@@ -124,7 +138,10 @@ namespace Cognigy
             {
                 try
                 {
-                    aiClient.SendMessage(null, data);
+                    ThreadPool.QueueUserWorkItem((cb) =>
+                    {
+                        aiClient.SendMessage<object>(null, data);
+                    });
                 }
                 catch (Exception e)
                 {
@@ -143,7 +160,10 @@ namespace Cognigy
             {
                 try
                 {
-                    aiClient.SendMessage(message.ToLower(), data);
+                    ThreadPool.QueueUserWorkItem((cb) =>
+                    {
+                        aiClient.SendMessage<object>(message, data);
+                    });
                 }
                 catch (Exception e)
                 {
@@ -170,35 +190,68 @@ namespace Cognigy
             }
         }
 
-        private void EnqueueOutput(object sender, OutputEventArgs args)
+        private void StoreOutputEvent(object sender, OutputEventArgs args)
         {
-            outputEventArgs.Enqueue(args);
-        }
+            if (args == null)
+                throw new ArgumentNullException("OutputEventArgs");
 
-        private void EnqueueStep(object sender, StepEventArgs args)
-        {
-            stepEventArgs.Enqueue(args);
-        }
-
-        private IEnumerator AIPollResult()
-        {
-            while (aiClient != null)
+            lock (outputEventForMain)
             {
-                OutputEventArgs outputArgs;
-                while (outputEventArgs.TryDequeue(out outputArgs))
+                outputEventForMain.Add(args);
+                noOutputEventForMain = false;
+            }
+        }
+
+        private void StoreStepEvent(object sender, StepEventArgs args)
+        {
+            if (args == null)
+                throw new ArgumentNullException("StepEventArgs");
+
+            lock (stepEventForMain)
+            {
+                stepEventForMain.Add(args);
+                noStepEventForMain = false;
+            }
+        }
+
+        private void Update()
+        {
+            if (!noOutputEventForMain)
+            {
+                outputEventCopiedForMain.Clear();
+
+                lock (outputEventForMain)
+                {
+                    outputEventCopiedForMain.AddRange(outputEventForMain);
+                    outputEventForMain.Clear();
+
+                    noOutputEventForMain = true;
+                }
+
+                for (int i = 0; i < outputEventCopiedForMain.Count; i++)
                 {
                     if (OnOutput != null)
-                        OnOutput(this, outputArgs);
+                        OnOutput(this, outputEventCopiedForMain[i]);
+                }
+            }
+
+            if (!noStepEventForMain)
+            {
+                stepEventCopiedForMain.Clear();
+
+                lock (stepEventForMain)
+                {
+                    stepEventCopiedForMain.AddRange(stepEventForMain);
+                    stepEventForMain.Clear();
+
+                    noStepEventForMain = true;
                 }
 
-                StepEventArgs stepArgs;
-                while (stepEventArgs.TryDequeue(out stepArgs))
+                for (int i = 0; i < stepEventCopiedForMain.Count; i++)
                 {
                     if (OnStep != null)
-                        OnStep(this, stepArgs);
+                        OnStep(this, stepEventCopiedForMain[i]);
                 }
-
-                yield return null;
             }
         }
 
@@ -206,8 +259,11 @@ namespace Cognigy
         {
             if (aiClient != null && HasAI && !hasSubscribed)
             {
-                aiClient.OnOutput += EnqueueOutput;
-                aiClient.OnStep += EnqueueStep;
+                aiClient.OnOutput += StoreOutputEvent;
+
+                if (listensToStepEvents)
+                    aiClient.OnStep += StoreStepEvent;
+
                 hasSubscribed = true;
             }
         }
@@ -216,8 +272,11 @@ namespace Cognigy
         {
             if (aiClient != null && hasSubscribed)
             {
-                aiClient.OnOutput -= EnqueueOutput;
-                aiClient.OnStep -= EnqueueStep;
+                aiClient.OnOutput -= StoreOutputEvent;
+
+                if (listensToStepEvents)
+                    aiClient.OnStep -= StoreStepEvent;
+
                 hasSubscribed = false;
             }
         }

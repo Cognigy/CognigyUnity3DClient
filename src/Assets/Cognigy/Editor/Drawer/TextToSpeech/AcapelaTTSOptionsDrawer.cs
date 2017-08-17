@@ -4,43 +4,65 @@ using UnityEngine;
 
 public class AcapelaTTSOptionsDrawer : OptionsDrawer
 {
-    private AcapelaTTSOptions acapelaOptions;
-
+    private AcapelaTTSOptions serviceOptions;
     private string rateTemp = string.Empty;
 
-    public override void Initialize()
+    public override void DrawOptions<TOptions>(TOptions serviceOptions)
     {
-        acapelaOptions = CreateInstance<AcapelaTTSOptions>();
-        acapelaOptions.ServiceName = "Acapela";
-    }
+        this.serviceOptions = serviceOptions as AcapelaTTSOptions;
 
-    public override void DrawOptions()
-    {
-        GUILayout.Label("VAAS Server URL");
-        acapelaOptions.VaasUrl = GUILayout.TextField(acapelaOptions.VaasUrl);
+        DrawVaasURLField();
 
-        GUILayout.Label("Login");
-        acapelaOptions.Login = GUILayout.TextField(acapelaOptions.Login);
+        DrawLoginField();
 
-        GUILayout.Label("Password");
-        acapelaOptions.Password = GUILayout.TextField(acapelaOptions.Password);
+        DrawPasswordField();
 
-        GUILayout.Label("App");
-        acapelaOptions.App = GUILayout.TextField(acapelaOptions.App);
+        DrawAppField();
 
-        GUILayout.Label("Voice");
-        acapelaOptions.Voice = (int)((AcapelaVoice)EditorGUILayout.EnumPopup((AcapelaVoice)acapelaOptions.Voice, GUI.skin.GetStyle("customEnum")));
+        DrawVoiceEnum();
 
         GUILayout.Space(10);
 
+        DrawRateField();
+    }
+
+    #region GuiElements
+    private void DrawVaasURLField()
+    {
+        GUILayout.Label("VAAS Server URL");
+        serviceOptions.VaasUrl = GUILayout.TextField(serviceOptions.VaasUrl);
+    }
+
+    private void DrawLoginField()
+    {
+        GUILayout.Label("Login");
+        serviceOptions.Login = GUILayout.TextField(serviceOptions.Login);
+    }
+
+    private void DrawPasswordField()
+    {
+        GUILayout.Label("Password");
+        serviceOptions.Password = GUILayout.TextField(serviceOptions.Password);
+    }
+
+    private void DrawAppField()
+    {
+        GUILayout.Label("App");
+        serviceOptions.App = GUILayout.TextField(serviceOptions.App);
+    }
+
+    private void DrawVoiceEnum()
+    {
+        GUILayout.Label("Voice");
+        serviceOptions.Voice = (int)((AcapelaVoice)EditorGUILayout.EnumPopup((AcapelaVoice)serviceOptions.Voice, GUI.skin.GetStyle("customEnum")));
+    }
+
+    private void DrawRateField()
+    {
         GUILayout.Label("Rate");
         rateTemp = GUILayout.TextField(rateTemp);
         rateTemp = Regex.Replace(rateTemp, "[^0-9]", "");
-        int.TryParse(rateTemp, out acapelaOptions.Rate);
+        int.TryParse(rateTemp, out serviceOptions.Rate);
     }
-
-    public override ServiceOptions GetOptions()
-    {
-        return this.acapelaOptions;
-    }
+    #endregion
 }

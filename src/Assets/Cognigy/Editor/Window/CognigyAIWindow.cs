@@ -8,6 +8,7 @@ namespace Cognigy
     {
         [SerializeField]
         private GUISkin guiSkin;
+
         [SerializeField]
         private Texture2D cognigyLogo;
 
@@ -17,9 +18,15 @@ namespace Cognigy
         private string intervalTemp = string.Empty;
         private string timeoutTemp = string.Empty;
 
-        private bool showConnectionFields = false;
-        private bool showFlowFields = false;
+        private string selectedObject = string.Empty;
+
+        private bool showConnectionFields = true;
+        private bool showFlowFields = true;
         private bool showAdditionFields = false;
+
+        private TextAnchor defaultLabelAlignment;
+
+        private Vector2 scrollPosition;
 
         private bool hasSelection;
 
@@ -31,14 +38,32 @@ namespace Cognigy
 
         private void Awake()
         {
-            this.minSize = new Vector2(400, 830);
+            this.minSize = new Vector2(420, 740);
             aiOptions = CreateInstance<AIOptions>();
         }
 
         void OnGUI()
         {
             GUI.skin = guiSkin;
+            defaultLabelAlignment = GUI.skin.label.alignment;
+
+            if (Selection.activeTransform != null)
+            {
+                selectedObject = Selection.activeTransform.gameObject.name;
+                hasSelection = true;
+            }
+            else
+            {
+                selectedObject = "none";
+                hasSelection = false;
+            }
+
             DrawOptions();
+        }
+
+        private void OnInspectorUpdate()
+        {
+            Repaint();
         }
 
         private void DrawOptions()
@@ -48,6 +73,14 @@ namespace Cognigy
             DrawLogo();
 
             GUILayout.Space(10);
+
+            DrawSelectedObjectLabel();
+
+            OptionsLayout.HorizontalLine(this.guiSkin);
+
+            GUILayout.Space(10);
+
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
             if (GUILayout.Button("Connection"))
                 showConnectionFields = !showConnectionFields;
@@ -109,6 +142,10 @@ namespace Cognigy
 
                 GUILayout.Space(5);
 
+                DrawListenToStepToggle();
+
+                GUILayout.Space(5);
+
                 DrawChannelField();
 
                 DrawIntervalField();
@@ -118,12 +155,15 @@ namespace Cognigy
                 GUILayout.EndVertical();
             }
 
-            GUILayout.Space(20);
 
-            if (Selection.activeTransform != null)
-                hasSelection = true;
-            else
-                hasSelection = false;
+            EditorGUILayout.EndScrollView();
+
+            GUILayout.Space(12);
+
+            OptionsLayout.HorizontalLine(this.guiSkin);
+
+            GUILayout.Space(12);
+
 
             GUILayout.BeginHorizontal();
             DrawCreateOptionsButton();
@@ -134,18 +174,10 @@ namespace Cognigy
             }
             GUILayout.EndHorizontal();
 
+            GUILayout.Space(12);
         }
 
-        //GUI Elements
-
-        private void DrawSeperator()
-        {
-            GUILayout.Space(8);
-
-            GUILayout.Box("", guiSkin.GetStyle("seperator"), new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(2) });
-
-            GUILayout.Space(8);
-        }
+        #region GuiElements
 
         private void DrawLogo()
         {
@@ -236,7 +268,9 @@ namespace Cognigy
         private void DrawReconnectionToggle()
         {
             GUILayout.BeginHorizontal();
+            GUI.skin.label.alignment = TextAnchor.MiddleLeft;
             GUILayout.Label("Reconnection");
+            GUI.skin.label.alignment = defaultLabelAlignment;
             GUILayout.FlexibleSpace();
             aiOptions.Reconnection = GUILayout.Toggle(aiOptions.Reconnection, "", this.guiSkin.customStyles[0]);
             GUILayout.EndHorizontal();
@@ -257,6 +291,15 @@ namespace Cognigy
             GUILayout.Label(new GUIContent("Reset Context", "If 'true': resets the context of the flow to default"));
             GUILayout.FlexibleSpace();
             aiOptions.ResetContext = GUILayout.Toggle(aiOptions.ResetContext, "", this.guiSkin.customStyles[0]);
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawListenToStepToggle()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(new GUIContent("Listen to Steps", "Needs to be toggled on if you want to listen to the OnStep event"));
+            GUILayout.FlexibleSpace();
+            aiOptions.ListenToStep = GUILayout.Toggle(aiOptions.ListenToStep, "", this.guiSkin.customStyles[0]);
             GUILayout.EndHorizontal();
         }
 
@@ -293,80 +336,92 @@ namespace Cognigy
 
         private void DrawAttachButton()
         {
-            if (GUILayout.Button("Attach AI"))
+            if (GUILayout.Button("Attach", guiSkin.GetStyle("AttachButton")))
             {
                 AttachOptions();
-
-                this.Close();
             }
         }
 
         private void DrawCreateOptionsButton()
         {
-            if (GUILayout.Button("Create AI Options"))
+            if (GUILayout.Button("Create Options", guiSkin.GetStyle("CreateButton")))
             {
                 CreateOptions();
+            }
+        }
+
+        private void DrawSelectedObjectLabel()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            GUILayout.Label("Selected:");
+            GUILayout.Label(selectedObject);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+        }
+        #endregion
+
+        private void AttachOptions()
+        {
+            if (EditorUtility.DisplayDialog("Cognigy AI", "Do you want to attach the Cognigy AI with these Settings to:\n" + Selection.activeTransform.gameObject.name, "Attach", "Cancel"))
+            {
+                string path = "Assets";
+                string assetName;
+
+                if (Selection.activeTransform != null)
+                    assetName = Selection.activeTransform.gameObject.name;
+                else
+                {
+                    if (!string.IsNullOrEmpty(aiOptions.Flow))
+                        assetName = aiOptions.Flow;
+                    else
+                        assetName = "Options";
+                }
+
+                string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + "AI_" + assetName + ".asset");
+
+                AssetDatabase.CreateAsset(aiOptions, assetPathAndName);
+
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
+                CognigyAI cognigyAI;
+
+                if ((cognigyAI = Selection.activeTransform.gameObject.GetComponent<CognigyAI>()) == null)
+                    cognigyAI = Selection.activeTransform.gameObject.AddComponent<CognigyAI>();
+
+                cognigyAI.aiOptions = aiOptions;
 
                 this.Close();
             }
         }
 
-        private void AttachOptions()
-        {
-            string path = "Assets";
-            string assetName;
-
-            if (Selection.activeTransform != null)
-                assetName = Selection.activeTransform.gameObject.name;
-            else
-            {
-                if (!string.IsNullOrEmpty(aiOptions.Flow))
-                    assetName = aiOptions.Flow;
-                else
-                    assetName = "Options";
-            }
-
-            string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + "AI_" + assetName + ".asset");
-
-            AssetDatabase.CreateAsset(aiOptions, assetPathAndName);
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            CognigyAI cognigyAI;
-
-            if ((cognigyAI = Selection.activeTransform.gameObject.GetComponent<CognigyAI>()) == null)
-                cognigyAI = Selection.activeTransform.gameObject.AddComponent<CognigyAI>();
-
-            cognigyAI.aiOptions = aiOptions;
-
-            EditorUtility.DisplayDialog("Cognigy AI", "Cognigy AI attached to character(s):\n" + Selection.activeTransform.gameObject.name, "Ok");
-        }
-
         private void CreateOptions()
         {
-            string path = "Assets";
-            string assetName;
-
-            if (Selection.activeTransform != null)
-                assetName = Selection.activeTransform.gameObject.name;
-            else
+            if (EditorUtility.DisplayDialog("Cognigy AI", "Do you want to create these settings?", "Create", "Cancel"))
             {
-                if (!string.IsNullOrEmpty(aiOptions.Flow))
-                    assetName = aiOptions.Flow;
+                string path = "Assets";
+                string assetName;
+
+                if (Selection.activeTransform != null)
+                    assetName = Selection.activeTransform.gameObject.name.Replace(" ", "_");
                 else
-                    assetName = "Options";
+                {
+                    if (!string.IsNullOrEmpty(aiOptions.Flow))
+                        assetName = aiOptions.Flow;
+                    else
+                        assetName = "Options";
+                }
+
+                string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + "AI_" + assetName + ".asset");
+
+                AssetDatabase.CreateAsset(aiOptions, assetPathAndName);
+
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
+                this.Close();
             }
-
-            string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + "AI_" + assetName + ".asset");
-
-            AssetDatabase.CreateAsset(aiOptions, assetPathAndName);
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-
-            EditorUtility.DisplayDialog("Cognigy AI", "Options created at:\n" + assetPathAndName, "Ok");
         }
 
     }
