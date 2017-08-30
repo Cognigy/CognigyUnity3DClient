@@ -47,6 +47,7 @@ public class WindowsSTTOptionsDrawer : OptionsDrawer
     private void DrawAutoSilenceField()
     {
         GUILayout.Label(new GUIContent("Auto Silence Timeout", "The time length in seconds before dictation recognizer ends due lack if audio input"));
+        autoSilenceTimeoutSecondsTemp = windowsSTTOptions.AutoSilenceTimeoutSeconds.ToString();
         autoSilenceTimeoutSecondsTemp = GUILayout.TextField(autoSilenceTimeoutSecondsTemp);
         autoSilenceTimeoutSecondsTemp = Regex.Replace(autoSilenceTimeoutSecondsTemp, "[^0-9]", "");
         float.TryParse(autoSilenceTimeoutSecondsTemp, out windowsSTTOptions.AutoSilenceTimeoutSeconds);

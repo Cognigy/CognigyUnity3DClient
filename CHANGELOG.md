@@ -24,3 +24,8 @@
 
 - UI
     - Minor changes
+
+## [Version 1.0.2] (30.08.2017)
+
+### Bugfix
+- fixed NullReference which occured at opening a options window (STT, TTS, AI)

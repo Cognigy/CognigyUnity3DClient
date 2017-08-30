@@ -34,5 +34,5 @@ public class WindowsSTTOptions : SpeechToTextOptions
     public ConfidenceLevel ConfidenceLevel = ConfidenceLevel.Low;
 
     [SerializeField]
-    public float AutoSilenceTimeoutSeconds;
+    public float AutoSilenceTimeoutSeconds = 5.0f;
 }

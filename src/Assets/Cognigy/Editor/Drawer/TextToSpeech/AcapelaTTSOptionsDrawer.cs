@@ -60,6 +60,7 @@ public class AcapelaTTSOptionsDrawer : OptionsDrawer
     private void DrawRateField()
     {
         GUILayout.Label("Rate");
+        rateTemp = serviceOptions.Rate.ToString();
         rateTemp = GUILayout.TextField(rateTemp);
         rateTemp = Regex.Replace(rateTemp, "[^0-9]", "");
         int.TryParse(rateTemp, out serviceOptions.Rate);

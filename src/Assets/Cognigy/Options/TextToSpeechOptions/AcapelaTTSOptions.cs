@@ -31,11 +31,11 @@ public class AcapelaTTSOptions : TextToSpeechOptions
     }
 
     [SerializeField]
-    public string VaasUrl;
+    public string VaasUrl = string.Empty;
     [SerializeField]
-    public string Login;
+    public string Login = string.Empty;
     [SerializeField]
-    public string Password;
+    public string Password = string.Empty;
     [SerializeField]
-    public string App;
+    public string App = string.Empty;
 }

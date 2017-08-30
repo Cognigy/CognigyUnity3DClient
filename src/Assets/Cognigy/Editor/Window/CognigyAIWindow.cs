@@ -202,6 +202,7 @@ namespace Cognigy
             GUILayout.BeginHorizontal();
             GUILayout.Label("Timeout");
             GUILayout.FlexibleSpace();
+            timeoutTemp = aiOptions.MillisecondsTimeout.ToString();
             timeoutTemp = GUILayout.TextField(timeoutTemp, GUILayout.Width(50));
             timeoutTemp = Regex.Replace(timeoutTemp, "[^0-9]", "");
             int.TryParse(timeoutTemp, out aiOptions.MillisecondsTimeout);
@@ -254,6 +255,7 @@ namespace Cognigy
             GUILayout.Label("Version");
             GUILayout.Label(new GUIContent("Optional", "Can be empty"), GUI.skin.GetStyle("optional"));
             GUILayout.EndHorizontal();
+            versionTemp = aiOptions.Version.ToString();
             versionTemp = GUILayout.TextField(versionTemp);
             versionTemp = Regex.Replace(versionTemp, "[^0-9]", "");
             int.TryParse(versionTemp, out aiOptions.Version);
@@ -319,6 +321,7 @@ namespace Cognigy
             GUILayout.Label(new GUIContent("Optional", "Can be empty"), GUI.skin.GetStyle("optional"));
             GUILayout.EndHorizontal();
             GUI.skin.textField.alignment = TextAnchor.UpperRight;
+            intervalTemp = aiOptions.Interval.ToString();
             intervalTemp = GUILayout.TextField(intervalTemp);
             GUI.skin.textField.alignment = TextAnchor.UpperLeft;
             intervalTemp = Regex.Replace(intervalTemp, "[^0-9]", "");

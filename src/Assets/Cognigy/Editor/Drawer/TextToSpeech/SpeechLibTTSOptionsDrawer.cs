@@ -51,6 +51,7 @@ public class SpeechLibTTSOptionsDrawer : OptionsDrawer
     private void DrawRateField()
     {
         GUILayout.Label("Rate");
+        rateTemp = serviceOptions.Rate.ToString();
         rateTemp = GUILayout.TextField(rateTemp);
         rateTemp = Regex.Replace(rateTemp, "[^0-9]", "");
         int.TryParse(rateTemp, out serviceOptions.Rate);
@@ -59,6 +60,7 @@ public class SpeechLibTTSOptionsDrawer : OptionsDrawer
     private void DrawVolumeField()
     {
         GUILayout.Label("Volume");
+        volumeTemp = serviceOptions.Volume.ToString();
         volumeTemp = GUILayout.TextField(volumeTemp);
         volumeTemp = Regex.Replace(volumeTemp, "[^0-9]", "");
         int.TryParse(volumeTemp, out serviceOptions.Volume);

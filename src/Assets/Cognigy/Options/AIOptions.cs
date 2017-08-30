@@ -18,7 +18,7 @@ namespace Cognigy
         [SerializeField]
         public string AIServerUrl = string.Empty;
         [SerializeField]
-        public int MillisecondsTimeout;
+        public int MillisecondsTimeout = 0;
         [Space]
         [SerializeField]
         public string User = string.Empty;

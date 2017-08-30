@@ -41,8 +41,6 @@ namespace Cognigy
 
         private CancellationTokenSource aiCancelTokenSource;
 
-        private Coroutine aiPollingRoutine;
-
         public void ConnectAIClient()
         {
             if (aiOptions != null)
@@ -86,9 +84,6 @@ namespace Cognigy
 
             if (aiClient != null)
             {
-                if (aiPollingRoutine != null)
-                    StopCoroutine(aiPollingRoutine);
-
                 if (hasSubscribed)
                 {
                     aiClient.OnOutput -= StoreOutputEvent;
