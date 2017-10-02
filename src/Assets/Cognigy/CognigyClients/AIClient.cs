@@ -1,6 +1,7 @@
 ﻿using Cognigy.Utility;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Quobject.EngineIoClientDotNet.Client.Transports;
 using Quobject.SocketIoClientDotNet.Client;
 using System;
 using System.Collections.Generic;
@@ -190,7 +191,10 @@ namespace Cognigy
                     Reconnection = true,
                     AutoConnect = true,
                     QueryString = "token=" + token,
-                    Upgrade = false
+                    Upgrade = true,
+                    ForceNew = true,
+                    Multiplex = false,
+                    Transports = new List<string> { WebSocket.NAME, Polling.NAME }
                 };
 
                 this.mySocket = IO.Socket(new Uri(this.aiOptions.AIServerUrl), options);

@@ -29,3 +29,12 @@
 
 ### Bugfix
 - fixed NullReference which occured at opening a options window (STT, TTS, AI)
+
+## [Version 1.0.3] (02.10.2017)
+
+### Changed
+- Cognigy AI
+    - Edited accessors to prevent interference of multiple clients
+
+- AI Client
+    - Added some connection options to enable multiple connections

@@ -30,14 +30,14 @@ namespace Cognigy
         private bool hasSubscribed;
         private bool listensToStepEvents;
 
-        private static List<StepEventArgs> stepEventForMain = new List<StepEventArgs>();
+        private List<StepEventArgs> stepEventForMain = new List<StepEventArgs>();
         private List<StepEventArgs> stepEventCopiedForMain = new List<StepEventArgs>();
 
-        private static List<OutputEventArgs> outputEventForMain = new List<OutputEventArgs>();
+        private List<OutputEventArgs> outputEventForMain = new List<OutputEventArgs>();
         private List<OutputEventArgs> outputEventCopiedForMain = new List<OutputEventArgs>();
 
-        private volatile static bool noOutputEventForMain = true;
-        private volatile static bool noStepEventForMain = true;
+        private volatile bool noOutputEventForMain = true;
+        private volatile bool noStepEventForMain = true;
 
         private CancellationTokenSource aiCancelTokenSource;
 
