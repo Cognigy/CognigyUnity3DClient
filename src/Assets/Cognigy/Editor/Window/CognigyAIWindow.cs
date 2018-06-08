@@ -12,16 +12,14 @@ namespace Cognigy
         [SerializeField]
         private Texture2D cognigyLogo;
 
-        private AIOptions aiOptions;
+        private SocketEndpointOptions socketEndpointOptions;
 
-        private string versionTemp = string.Empty;
         private string intervalTemp = string.Empty;
         private string timeoutTemp = string.Empty;
 
         private string selectedObject = string.Empty;
 
         private bool showConnectionFields = true;
-        private bool showFlowFields = true;
         private bool showAdditionFields = false;
 
         private TextAnchor defaultLabelAlignment;
@@ -30,7 +28,7 @@ namespace Cognigy
 
         private bool hasSelection;
 
-        [MenuItem("Window/Cognigy/Cognigy AI")]
+        [MenuItem("Window/Cognigy/COGNIGY.AI")]
         public static void ShowWindow()
         {
             EditorWindow.GetWindow(typeof(CognigyAIWindow));
@@ -39,7 +37,7 @@ namespace Cognigy
         private void Awake()
         {
             this.minSize = new Vector2(420, 740);
-            aiOptions = CreateInstance<AIOptions>();
+            socketEndpointOptions = CreateInstance<SocketEndpointOptions>();
         }
 
         void OnGUI()
@@ -89,35 +87,15 @@ namespace Cognigy
             {
                 GUILayout.BeginVertical("box");
 
-                DrawServerUrlField();
+                DrawEndpointURLField();
+
+                DrawURLTokenField();
+
+                DrawUserIdField();
+
+                DrawSessionIdField();
 
                 DrawTimeoutField();
-
-                DrawApikeyField();
-
-                DrawTokenField();
-
-                GUILayout.EndVertical();
-            }
-
-            GUILayout.Space(20);
-
-            if (GUILayout.Button("Flow Settings"))
-                showFlowFields = !showFlowFields;
-
-            if (showFlowFields)
-            {
-                GUILayout.BeginVertical("box");
-
-                DrawUserField();
-
-                DrawFlowField();
-
-                DrawVersionField();
-
-                DrawLanguageEnum();
-
-                GUILayout.Space(10);
 
                 GUILayout.EndVertical();
             }
@@ -141,14 +119,6 @@ namespace Cognigy
                 DrawResetContextToggle();
 
                 GUILayout.Space(5);
-
-                DrawListenToStepToggle();
-
-                GUILayout.Space(5);
-
-                DrawChannelField();
-
-                DrawIntervalField();
 
                 DrawPassthroughIpField();
 
@@ -188,13 +158,13 @@ namespace Cognigy
             GUILayout.EndHorizontal();
         }
 
-        private void DrawServerUrlField()
+        private void DrawEndpointURLField()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Cognigy AI Server URL");
+            GUILayout.Label("Endpoint URL");
             GUILayout.Label(new GUIContent("*", "required"), GUI.skin.GetStyle("required"));
             GUILayout.EndHorizontal();
-            aiOptions.AIServerUrl = GUILayout.TextField(aiOptions.AIServerUrl);
+            socketEndpointOptions.EndpointURL = EditorGUILayout.TextField(socketEndpointOptions.EndpointURL, GUI.skin.GetStyle("TextField"));
         }
 
         private void DrawTimeoutField()
@@ -202,10 +172,10 @@ namespace Cognigy
             GUILayout.BeginHorizontal();
             GUILayout.Label("Timeout");
             GUILayout.FlexibleSpace();
-            timeoutTemp = aiOptions.MillisecondsTimeout.ToString();
+            timeoutTemp = socketEndpointOptions.MillisecondsTimeout.ToString();
             timeoutTemp = GUILayout.TextField(timeoutTemp, GUILayout.Width(50));
             timeoutTemp = Regex.Replace(timeoutTemp, "[^0-9]", "");
-            int.TryParse(timeoutTemp, out aiOptions.MillisecondsTimeout);
+            int.TryParse(timeoutTemp, out socketEndpointOptions.MillisecondsTimeout);
             GUILayout.Space(5);
             GUI.skin.label.alignment = TextAnchor.UpperRight;
             GUILayout.Label("ms");
@@ -213,60 +183,32 @@ namespace Cognigy
             GUILayout.EndHorizontal();
         }
 
-        private void DrawApikeyField()
+        private void DrawURLTokenField()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label("API Key");
+            GUILayout.Label("URL Token");
             GUILayout.Label(new GUIContent("*", "required"), GUI.skin.GetStyle("required"));
             GUILayout.EndHorizontal();
-            aiOptions.APIKey = GUILayout.TextField(aiOptions.APIKey);
+            socketEndpointOptions.URLToken = EditorGUILayout.TextField(socketEndpointOptions.URLToken, GUI.skin.GetStyle("TextField"));
         }
 
-        private void DrawTokenField()
+        private void DrawUserIdField()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Token");
-            GUILayout.Label(new GUIContent("Optional", "Can be empty"), GUI.skin.GetStyle("optional"));
-            GUILayout.EndHorizontal();
-            aiOptions.Token = GUILayout.TextField(aiOptions.Token);
-        }
-
-        private void DrawUserField()
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("User");
+            GUILayout.Label("User ID");
             GUILayout.Label(new GUIContent("*", "required"), GUI.skin.GetStyle("required"));
             GUILayout.EndHorizontal();
-            aiOptions.User = GUILayout.TextField(aiOptions.User);
+            socketEndpointOptions.UserID = EditorGUILayout.TextField(socketEndpointOptions.UserID, GUI.skin.GetStyle("TextField"));
         }
 
-        private void DrawFlowField()
+        private void DrawSessionIdField()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(new GUIContent("Flow", "The name of the flow"));
+            GUILayout.Label("Session ID");
             GUILayout.Label(new GUIContent("*", "required"), GUI.skin.GetStyle("required"));
             GUILayout.EndHorizontal();
-            aiOptions.Flow = GUILayout.TextField(aiOptions.Flow);
+            socketEndpointOptions.SessionID = EditorGUILayout.TextField(socketEndpointOptions.SessionID, GUI.skin.GetStyle("TextField"));
         }
-
-        private void DrawVersionField()
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Version");
-            GUILayout.Label(new GUIContent("Optional", "Can be empty"), GUI.skin.GetStyle("optional"));
-            GUILayout.EndHorizontal();
-            versionTemp = aiOptions.Version.ToString();
-            versionTemp = GUILayout.TextField(versionTemp);
-            versionTemp = Regex.Replace(versionTemp, "[^0-9]", "");
-            int.TryParse(versionTemp, out aiOptions.Version);
-        }
-
-        private void DrawLanguageEnum()
-        {
-            GUILayout.Label("Language");
-            aiOptions.Language = (AILanguage)EditorGUILayout.EnumPopup(aiOptions.Language, GUI.skin.GetStyle("customEnum"));
-        }
-
         private void DrawReconnectionToggle()
         {
             GUILayout.BeginHorizontal();
@@ -274,7 +216,7 @@ namespace Cognigy
             GUILayout.Label("Reconnection");
             GUI.skin.label.alignment = defaultLabelAlignment;
             GUILayout.FlexibleSpace();
-            aiOptions.Reconnection = GUILayout.Toggle(aiOptions.Reconnection, "", this.guiSkin.customStyles[0]);
+            socketEndpointOptions.Reconnection = GUILayout.Toggle(socketEndpointOptions.Reconnection, "", this.guiSkin.customStyles[0]);
             GUILayout.EndHorizontal();
         }
 
@@ -283,7 +225,7 @@ namespace Cognigy
             GUILayout.BeginHorizontal();
             GUILayout.Label(new GUIContent("Reset State", "If 'true': resets the state of the flow to default"));
             GUILayout.FlexibleSpace();
-            aiOptions.ResetState = GUILayout.Toggle(aiOptions.ResetState, "", this.guiSkin.customStyles[0]);
+            socketEndpointOptions.ResetState = GUILayout.Toggle(socketEndpointOptions.ResetState, "", this.guiSkin.customStyles[0]);
             GUILayout.EndHorizontal();
         }
 
@@ -292,40 +234,8 @@ namespace Cognigy
             GUILayout.BeginHorizontal();
             GUILayout.Label(new GUIContent("Reset Context", "If 'true': resets the context of the flow to default"));
             GUILayout.FlexibleSpace();
-            aiOptions.ResetContext = GUILayout.Toggle(aiOptions.ResetContext, "", this.guiSkin.customStyles[0]);
+            socketEndpointOptions.ResetContext = GUILayout.Toggle(socketEndpointOptions.ResetContext, "", this.guiSkin.customStyles[0]);
             GUILayout.EndHorizontal();
-        }
-
-        private void DrawListenToStepToggle()
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(new GUIContent("Listen to Steps", "Needs to be toggled on if you want to listen to the OnStep event"));
-            GUILayout.FlexibleSpace();
-            aiOptions.ListenToStep = GUILayout.Toggle(aiOptions.ListenToStep, "", this.guiSkin.customStyles[0]);
-            GUILayout.EndHorizontal();
-        }
-
-        private void DrawChannelField()
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Channel");
-            GUILayout.Label(new GUIContent("Optional", "Can be empty"), GUI.skin.GetStyle("optional"));
-            GUILayout.EndHorizontal();
-            aiOptions.Channel = GUILayout.TextField(aiOptions.Channel);
-        }
-
-        private void DrawIntervalField()
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Interval");
-            GUILayout.Label(new GUIContent("Optional", "Can be empty"), GUI.skin.GetStyle("optional"));
-            GUILayout.EndHorizontal();
-            GUI.skin.textField.alignment = TextAnchor.UpperRight;
-            intervalTemp = aiOptions.Interval.ToString();
-            intervalTemp = GUILayout.TextField(intervalTemp);
-            GUI.skin.textField.alignment = TextAnchor.UpperLeft;
-            intervalTemp = Regex.Replace(intervalTemp, "[^0-9]", "");
-            int.TryParse(intervalTemp, out aiOptions.Interval);
         }
 
         private void DrawPassthroughIpField()
@@ -334,7 +244,7 @@ namespace Cognigy
             GUILayout.Label("Passthrough IP");
             GUILayout.Label(new GUIContent("Optional", "Can be empty"), GUI.skin.GetStyle("optional"));
             GUILayout.EndHorizontal();
-            aiOptions.PassthroughIP = GUILayout.TextField(aiOptions.PassthroughIP);
+            socketEndpointOptions.PassthroughIP = GUILayout.TextField(socketEndpointOptions.PassthroughIP);
         }
 
         private void DrawAttachButton()
@@ -366,7 +276,7 @@ namespace Cognigy
 
         private void AttachOptions()
         {
-            if (EditorUtility.DisplayDialog("Cognigy AI", "Do you want to attach the Cognigy AI with these Settings to:\n" + Selection.activeTransform.gameObject.name, "Attach", "Cancel"))
+            if (EditorUtility.DisplayDialog("COGNIGY.AI", "Do you want to attach the Cognigy AI with these Settings to:\n" + Selection.activeTransform.gameObject.name, "Attach", "Cancel"))
             {
                 string path = "Assets";
                 string assetName;
@@ -375,15 +285,12 @@ namespace Cognigy
                     assetName = Selection.activeTransform.gameObject.name;
                 else
                 {
-                    if (!string.IsNullOrEmpty(aiOptions.Flow))
-                        assetName = aiOptions.Flow;
-                    else
-                        assetName = "Options";
+                        assetName = "Endpoint_Options";
                 }
 
                 string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + "AI_" + assetName + ".asset");
 
-                AssetDatabase.CreateAsset(aiOptions, assetPathAndName);
+                AssetDatabase.CreateAsset(socketEndpointOptions, assetPathAndName);
 
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
@@ -393,7 +300,7 @@ namespace Cognigy
                 if ((cognigyAI = Selection.activeTransform.gameObject.GetComponent<CognigyAI>()) == null)
                     cognigyAI = Selection.activeTransform.gameObject.AddComponent<CognigyAI>();
 
-                cognigyAI.aiOptions = aiOptions;
+                cognigyAI.socketEndpointOptions = socketEndpointOptions;
 
                 this.Close();
             }
@@ -401,7 +308,7 @@ namespace Cognigy
 
         private void CreateOptions()
         {
-            if (EditorUtility.DisplayDialog("Cognigy AI", "Do you want to create these settings?", "Create", "Cancel"))
+            if (EditorUtility.DisplayDialog("COGNIGY.AI", "Do you want to create these settings?", "Create", "Cancel"))
             {
                 string path = "Assets";
                 string assetName;
@@ -410,15 +317,12 @@ namespace Cognigy
                     assetName = Selection.activeTransform.gameObject.name.Replace(" ", "_");
                 else
                 {
-                    if (!string.IsNullOrEmpty(aiOptions.Flow))
-                        assetName = aiOptions.Flow;
-                    else
-                        assetName = "Options";
+                        assetName = "Endpoint_Options";
                 }
 
                 string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + "AI_" + assetName + ".asset");
 
-                AssetDatabase.CreateAsset(aiOptions, assetPathAndName);
+                AssetDatabase.CreateAsset(socketEndpointOptions, assetPathAndName);
 
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();

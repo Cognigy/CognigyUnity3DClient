@@ -2,7 +2,7 @@
 
 namespace Cognigy
 {
-    public class Output
+    public class FlowOutput
     {
         public string text;
         public JContainer data;

@@ -28,7 +28,7 @@ public class WindowsSTT : SpeechToTextService
 
             dictationRecognizer.DictationError += (string error, int hresult) =>
             {
-                ErrorLogger.LogError(error + " " + hresult);
+                Debug.LogError(error + " " + hresult);
             };
         }
     }

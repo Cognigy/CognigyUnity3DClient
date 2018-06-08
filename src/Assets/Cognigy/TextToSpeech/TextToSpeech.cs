@@ -19,14 +19,14 @@ public class TextToSpeech : ServiceComponent
             if (textToSpeechService != null)
                 textToSpeechService.TTSResult += value;
             else
-                ErrorLogger.LogError("Text to Speech service not set");
+                Debug.LogError("Text to Speech service not set");
         }
         remove
         {
             if (textToSpeechService != null)
                 textToSpeechService.TTSResult -= value;
             else
-                ErrorLogger.LogError("Text to Speech service not set");
+                Debug.LogError("Text to Speech service not set");
         }
     }
 
@@ -41,7 +41,7 @@ public class TextToSpeech : ServiceComponent
         }
         else
         {
-            ErrorLogger.LogNoOptions("Text To Speech", gameObject.name);
+            Debug.LogError("No options for Text To Speech service set");
         }
     }
 
@@ -53,6 +53,6 @@ public class TextToSpeech : ServiceComponent
         if (textToSpeechService != null)
             textToSpeechService.ProcessTextToAudio(input);
         else
-            ErrorLogger.LogError("Text to Speech service not set");
+            Debug.LogError("Text to Speech service not set");
     }
 }

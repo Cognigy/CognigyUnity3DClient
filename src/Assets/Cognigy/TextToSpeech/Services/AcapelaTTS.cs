@@ -46,7 +46,7 @@ public class AcapelaTTS : TextToSpeechService
         }
         catch (Exception e)
         {
-            ErrorLogger.LogException(e);
+            Debug.LogError(e);
         }
     }
 

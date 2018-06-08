@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace Cognigy
 {
-    [AddComponentMenu("Cognigy/Cognigy AI")]
+    [AddComponentMenu("Cognigy/COGNIGY.AI")]
     public class CognigyAI : MonoBehaviour
     {
-        public AIOptions aiOptions;
+        public SocketEndpointOptions socketEndpointOptions;
 
-        public bool HasAI
+        public bool IsConnected
         {
             get
             {
@@ -22,48 +22,36 @@ namespace Cognigy
             }
         }
 
-        public event EventHandler<OutputEventArgs> OnOutput;
-        public event EventHandler<StepEventArgs> OnStep;
+        public event EventHandler<FlowOutputEventArgs> OnOutput;
 
         private AIClient aiClient;
 
         private bool hasSubscribed;
-        private bool listensToStepEvents;
 
-        private List<StepEventArgs> stepEventForMain = new List<StepEventArgs>();
-        private List<StepEventArgs> stepEventCopiedForMain = new List<StepEventArgs>();
+        private List<FlowOutputEventArgs> flowOutputsForMain = new List<FlowOutputEventArgs>();
+        private List<FlowOutputEventArgs> flowOutputsCopiedForMain = new List<FlowOutputEventArgs>();
 
-        private List<OutputEventArgs> outputEventForMain = new List<OutputEventArgs>();
-        private List<OutputEventArgs> outputEventCopiedForMain = new List<OutputEventArgs>();
-
-        private volatile bool noOutputEventForMain = true;
-        private volatile bool noStepEventForMain = true;
+        private volatile bool noFlowOutputForMain = true;
 
         private CancellationTokenSource aiCancelTokenSource;
 
         public void ConnectAIClient()
         {
-            if (aiOptions != null)
+            if (socketEndpointOptions != null)
             {
                 int millisecondsTimeout;
 
-                if (aiOptions.MillisecondsTimeout <= 0)
+                if (socketEndpointOptions.MillisecondsTimeout <= 0)
                     millisecondsTimeout = Timeout.Infinite;
                 else
-                    millisecondsTimeout = aiOptions.MillisecondsTimeout;
+                    millisecondsTimeout = socketEndpointOptions.MillisecondsTimeout;
 
                 if (aiClient != null)
                     aiClient.Disconnect();
 
-                aiClient = new AIClient(this.aiOptions);
+                aiClient = new AIClient(this.socketEndpointOptions);
 
                 aiClient.OnOutput += StoreOutputEvent;
-
-                if (aiOptions.ListenToStep)
-                {
-                    listensToStepEvents = true;
-                    aiClient.OnStep += StoreStepEvent;
-                }
 
                 hasSubscribed = true;
 
@@ -87,7 +75,6 @@ namespace Cognigy
                 if (hasSubscribed)
                 {
                     aiClient.OnOutput -= StoreOutputEvent;
-                    aiClient.OnStep -= StoreStepEvent;
                     hasSubscribed = false;
                 }
 
@@ -108,22 +95,14 @@ namespace Cognigy
         {
             if (aiClient != null && aiClient.IsConnected())
             {
-                try
-                {
                     ThreadPool.QueueUserWorkItem((cb) =>
                     {
                         aiClient.SendMessage<object>(message, null);
                     });
-                }
-                catch (Exception e)
-                {
-
-                    ErrorLogger.LogException(e);
-                }
             }
             else
             {
-                ErrorLogger.LogError("AI not connected");
+                Debug.LogError("-- [COGNGIY.AI] Client not connected --");
             }
         }
 
@@ -131,21 +110,14 @@ namespace Cognigy
         {
             if (aiClient != null && aiClient.IsConnected())
             {
-                try
-                {
                     ThreadPool.QueueUserWorkItem((cb) =>
                     {
                         aiClient.SendMessage<object>(null, data);
                     });
-                }
-                catch (Exception e)
-                {
-                    ErrorLogger.LogException(e);
-                }
             }
             else
             {
-                ErrorLogger.LogError("AI not connected");
+                Debug.LogError("-- [COGNGIY.AI] Client not connected --");
             }
         }
 
@@ -153,111 +125,62 @@ namespace Cognigy
         {
             if (aiClient != null && aiClient.IsConnected())
             {
-                try
-                {
                     ThreadPool.QueueUserWorkItem((cb) =>
                     {
                         aiClient.SendMessage<object>(message, data);
                     });
-                }
-                catch (Exception e)
-                {
-
-                    ErrorLogger.LogException(e);
-                }
             }
             else
             {
-                ErrorLogger.LogError("AI not connected");
+                Debug.LogError("-- [COGNGIY.AI] Client not connected --");
             }
         }
 
         private void ConnectClient(object stateInfo)
         {
             ClientConnectionPacket clientPacket = (ClientConnectionPacket)stateInfo;
-            try
-            {
-                clientPacket.Client.Connect(clientPacket.Token, clientPacket.MillisecondsTimeout);
-            }
-            catch (Exception e)
-            {
-                ErrorLogger.LogException(e);
-            }
+            clientPacket.Client.Connect(clientPacket.Token, clientPacket.MillisecondsTimeout);
         }
 
-        private void StoreOutputEvent(object sender, OutputEventArgs args)
+        private void StoreOutputEvent(object sender, FlowOutputEventArgs args)
         {
             if (args == null)
-                throw new ArgumentNullException("OutputEventArgs");
+                throw new ArgumentNullException("FlowOutputEventArgs");
 
-            lock (outputEventForMain)
+            lock (flowOutputsForMain)
             {
-                outputEventForMain.Add(args);
-                noOutputEventForMain = false;
-            }
-        }
-
-        private void StoreStepEvent(object sender, StepEventArgs args)
-        {
-            if (args == null)
-                throw new ArgumentNullException("StepEventArgs");
-
-            lock (stepEventForMain)
-            {
-                stepEventForMain.Add(args);
-                noStepEventForMain = false;
+                flowOutputsForMain.Add(args);
+                noFlowOutputForMain = false;
             }
         }
 
         private void Update()
         {
-            if (!noOutputEventForMain)
+            if (!noFlowOutputForMain)
             {
-                outputEventCopiedForMain.Clear();
+                flowOutputsCopiedForMain.Clear();
 
-                lock (outputEventForMain)
+                lock (flowOutputsForMain)
                 {
-                    outputEventCopiedForMain.AddRange(outputEventForMain);
-                    outputEventForMain.Clear();
+                    flowOutputsCopiedForMain.AddRange(flowOutputsForMain);
+                    flowOutputsForMain.Clear();
 
-                    noOutputEventForMain = true;
+                    noFlowOutputForMain = true;
                 }
 
-                for (int i = 0; i < outputEventCopiedForMain.Count; i++)
+                for (int i = 0; i < flowOutputsCopiedForMain.Count; i++)
                 {
                     if (OnOutput != null)
-                        OnOutput(this, outputEventCopiedForMain[i]);
-                }
-            }
-
-            if (!noStepEventForMain)
-            {
-                stepEventCopiedForMain.Clear();
-
-                lock (stepEventForMain)
-                {
-                    stepEventCopiedForMain.AddRange(stepEventForMain);
-                    stepEventForMain.Clear();
-
-                    noStepEventForMain = true;
-                }
-
-                for (int i = 0; i < stepEventCopiedForMain.Count; i++)
-                {
-                    if (OnStep != null)
-                        OnStep(this, stepEventCopiedForMain[i]);
+                        OnOutput(this, flowOutputsCopiedForMain[i]);
                 }
             }
         }
 
         private void OnEnable()
         {
-            if (aiClient != null && HasAI && !hasSubscribed)
+            if (aiClient != null && IsConnected && !hasSubscribed)
             {
                 aiClient.OnOutput += StoreOutputEvent;
-
-                if (listensToStepEvents)
-                    aiClient.OnStep += StoreStepEvent;
 
                 hasSubscribed = true;
             }
@@ -268,9 +191,6 @@ namespace Cognigy
             if (aiClient != null && hasSubscribed)
             {
                 aiClient.OnOutput -= StoreOutputEvent;
-
-                if (listensToStepEvents)
-                    aiClient.OnStep -= StoreStepEvent;
 
                 hasSubscribed = false;
             }

@@ -9,23 +9,25 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using UnityEngine;
 
 namespace Cognigy
 {
     public class AIClient : CognigyClient
     {
-        public event EventHandler<OutputEventArgs> OnOutput;
-        public event EventHandler<StepEventArgs> OnStep;
+        private const string EVENT_PROCESS_INPUT = "processInput";
+        private const string EVENT_EXCEPTION = "exception";
+        private const string EVENT_OUTPUT = "output";
 
-        private AIOptions aiOptions;
-        private bool firstLoad;
+        public event EventHandler<FlowOutputEventArgs> OnOutput;
 
-        private Func<object, Output> BuildOutputObject = data => JsonConvert.DeserializeObject<Output>(Convert.ToString(data));
-        private Func<object, Step> BuildStepObject = data => JsonConvert.DeserializeObject<Step>(Convert.ToString(data));
+        private Func<object, FlowOutput> BuildFlowOutput = data => JsonConvert.DeserializeObject<FlowOutput>(Convert.ToString(data));
 
-        public AIClient(AIOptions aiOptions)
+        private SocketEndpointOptions socketEndpointOptions;
+
+        public AIClient(SocketEndpointOptions socketEndpointOptions)
         {
-            this.aiOptions = aiOptions;
+            this.socketEndpointOptions = socketEndpointOptions;
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
             ServicePointManager.ServerCertificateValidationCallback = ServerCertificateValidator.ValidateCertificate;
@@ -45,16 +47,7 @@ namespace Cognigy
             this.Cancelable = true;
             if (!cxToken.IsCancellationRequested)
             {
-                Initialized = InitCognigyClient(
-                    EstablishSocketConnection(
-                        GetToken(
-                            this.aiOptions.AIServerUrl,
-                            this.aiOptions.User,
-                            this.aiOptions.APIKey,
-                            this.aiOptions.Channel,
-                            this.aiOptions.Token
-                            )));
-                this.Cancelable = false;
+                Initialized = EstablishSocketConnection();
             }
             else
             {
@@ -66,8 +59,16 @@ namespace Cognigy
         {
             if (this.IsConnected())
             {
-                RawMessage<T> rawMessage = new RawMessage<T>(text, data);
-                this.mySocket.Emit("input", JObject.FromObject(rawMessage));
+                CognigyInput<T> cognigyInput = new CognigyInput<T>
+                (
+                    this.socketEndpointOptions.URLToken, 
+                    this.socketEndpointOptions.UserID, 
+                    this.socketEndpointOptions.SessionID,
+                    text, 
+                    data
+                );
+
+                this.mySocket.Emit(EVENT_PROCESS_INPUT, JObject.FromObject(cognigyInput));
             }
             else
             {
@@ -75,114 +76,7 @@ namespace Cognigy
             }
         }
 
-        public void ResetFlow(string newFlowId, string language, float version)
-        {
-            if (this.IsConnected())
-            {
-                Dictionary<string, object> resetFlowParam = new Dictionary<string, object>()
-            {
-                {"id", newFlowId},
-                {"language", language},
-                {"version", version}
-            };
-                this.mySocket.Emit("resetFlow", JObject.FromObject(resetFlowParam));
-            }
-            else
-                throw new CognigyConnectionException(ConnectionErrorType.NoConnection, "Socket is not connected");
-        }
-
-        public void RestState()
-        {
-            if (this.IsConnected())
-                this.mySocket.Emit("resetState");
-            else
-                throw new CognigyConnectionException(ConnectionErrorType.NoConnection, "Socket is not connected");
-        }
-
-        public void ResetContext()
-        {
-            if (this.IsConnected())
-                this.mySocket.Emit("resetContext");
-            else
-                throw new CognigyConnectionException(ConnectionErrorType.NoConnection, "Socket is not connected");
-        }
-
-        private string GetToken(string baseUrl, string user, string apikey, string channel, string token)
-        {
-            if (!string.IsNullOrEmpty(token))
-            {
-                return token;
-            }
-            else
-            {
-                return Fetch(baseUrl, user, apikey, channel);
-            }
-        }
-
-        private string Fetch(string baseUrl, string user, string apikey, string channel)
-        {
-            if (!cxToken.IsCancellationRequested)
-            {
-                string jsonString = JsonConvert.SerializeObject(new RequestBodyContent(user, apikey, channel));
-                byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonString);
-
-                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(baseUrl + "/loginDevice");
-                request.Method = "POST";
-                request.ContentType = "application/json";
-                request.ContentLength = bodyRaw.Length;
-                request.Accept = "application/json";
-
-                Stream reqStream = request.GetRequestStream();
-                reqStream.Write(bodyRaw, 0, bodyRaw.Length);
-                reqStream.Close();
-
-                if (!cxToken.IsCancellationRequested)
-                {
-                    using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                    {
-                        if (response.StatusCode == HttpStatusCode.OK)
-                        {
-                            Stream respStream = response.GetResponseStream();
-                            StreamReader respStreamReader = new StreamReader(respStream, Encoding.Default);
-
-                            ResponseBodyContent resBodyJson = JsonConvert.DeserializeObject<ResponseBodyContent>(respStreamReader.ReadToEnd());
-                            string token = resBodyJson.token;
-
-                            respStreamReader.Close();
-                            respStream.Close();
-                            response.Close();
-
-                            if (!string.IsNullOrEmpty(token))
-                            {
-                                request.Abort();
-                                return token;
-                            }
-                            else
-                            {
-                                request.Abort();
-                                throw new CognigyRequestException("No token received");
-                            }
-                        }
-                        else
-                        {
-                            request.Abort();
-                            response.Close();
-                            throw new CognigyRequestException("Status Code: " + response.StatusCode.ToString());
-                        }
-                    }
-                }
-                else
-                {
-                    throw new CognigyOperationCanceledException();
-                }
-            }
-            else
-            {
-                throw new CognigyOperationCanceledException();
-            }
-        }
-
-        private Socket EstablishSocketConnection(string token)
+        private bool EstablishSocketConnection()
         {
             if (!cxToken.IsCancellationRequested)
             {
@@ -190,85 +84,44 @@ namespace Cognigy
                 {
                     Reconnection = true,
                     AutoConnect = true,
-                    QueryString = "token=" + token,
+                    QueryString = "UrlToken=" + this.socketEndpointOptions.URLToken,
                     Upgrade = true,
                     ForceNew = true,
                     Multiplex = false,
                     Transports = new List<string> { WebSocket.NAME, Polling.NAME }
                 };
 
-                this.mySocket = IO.Socket(new Uri(this.aiOptions.AIServerUrl), options);
+                this.mySocket = IO.Socket(new Uri(this.socketEndpointOptions.EndpointURL), options);
 
-                this.mySocket.On("connect", () =>
+                this.mySocket.On(Socket.EVENT_CONNECT, () =>
                 {
                     this.isConnected = true;
                     waitHandle.Set();
                 });
 
-                this.mySocket.On("connect_error", (data) => { throw new CognigyConnectionException(ConnectionErrorType.ConnectionError, Convert.ToString(data)); });
-                this.mySocket.On("connect_timeout", (data) => { throw new CognigyConnectionException(ConnectionErrorType.ConnectionTimeout, Convert.ToString(data)); });
+                this.mySocket.On(Socket.EVENT_CONNECT_ERROR, (data) => { throw new CognigyConnectionException(ConnectionErrorType.ConnectionError, data.ToString()); });
+                this.mySocket.On(Socket.EVENT_CONNECT_TIMEOUT, (data) => { Debug.LogError(data); throw new CognigyConnectionException(ConnectionErrorType.ConnectionTimeout, Convert.ToString(data)); });
 
-                this.mySocket.On("error", (data) => { throw new CognigyAIException(AIErrorType.Error, Convert.ToString(data)); });
-                this.mySocket.On("exception", (data) => { throw new CognigyAIException(AIErrorType.Exception, Convert.ToString(data)); });
+                this.mySocket.On(Socket.EVENT_ERROR, (data) => { Debug.LogError(data); throw new CognigyAIException(AIErrorType.Error, Convert.ToString(data)); });
+                this.mySocket.On(EVENT_EXCEPTION, (data) => { Debug.LogError(data); throw new CognigyAIException(AIErrorType.Exception, Convert.ToString(data)); });
 
-                this.mySocket.On("disconnect", (data) => this.isConnected = false);
+                this.mySocket.On(Socket.EVENT_DISCONNECT, (data) => { Debug.Log("-- [COGNIGY.AI] Socket Client disconnected --"); this.isConnected = false; });
 
-                this.mySocket.On("output", (data) =>
+                this.mySocket.On(EVENT_OUTPUT, (data) =>
                 {
                     if (OnOutput != null)
-                        OnOutput(this, new OutputEventArgs(BuildOutputObject(data)));
+                    {
+                        JObject response = JObject.FromObject(data);
+                        if(response["type"].ToString() == "output")
+                            OnOutput(this, new FlowOutputEventArgs(BuildFlowOutput(response["data"])));
+                    }
                 });
-
-                this.mySocket.On("logStep", (data) =>
-                {
-                    if (OnStep != null)
-                        OnStep(this, new StepEventArgs(BuildStepObject(data)));
-                });
-
-                if (CustomWaitHandle.CancelableWaitOne(waitHandle, millisecondsTimeout, cxToken))
-                {
-                    return this.mySocket;
-                }
-                else //Timeout
-                {
-                    Disconnect();
-                    throw new CognigyConnectionException(ConnectionErrorType.ConnectionTimeout, "No answer from server received");
-                }
-            }
-            else
-            {
-                throw new CognigyOperationCanceledException();
-            }
-        }
-
-        private bool InitCognigyClient(Socket socket)
-        {
-            if (!cxToken.IsCancellationRequested)
-            {
-                int? version = null;
-
-                if (this.aiOptions.Version != 0)
-                    version = this.aiOptions.Version;
-
-                InitializationParameters initParam = new InitializationParameters(
-                    this.aiOptions.Flow,
-                    this.aiOptions.Language.ToString().Replace("_", "-"),
-                    version,
-                    this.aiOptions.PassthroughIP,
-                    this.aiOptions.ResetState,
-                    this.aiOptions.ResetContext
-                    );
-
-                socket.Emit("init", JObject.FromObject(initParam));
-
-                socket.On("initResponse", () => waitHandle.Set());
-                socket.On("exception", () => { throw new CognigyAIException(AIErrorType.Exception, "Error in brain initialization"); });
 
                 if (CustomWaitHandle.CancelableWaitOne(waitHandle, millisecondsTimeout, cxToken))
                 {
                     return true;
                 }
-                else
+                else //Timeout
                 {
                     Disconnect();
                     throw new CognigyConnectionException(ConnectionErrorType.ConnectionTimeout, "No answer from server received");

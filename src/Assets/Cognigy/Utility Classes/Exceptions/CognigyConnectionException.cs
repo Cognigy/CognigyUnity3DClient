@@ -16,18 +16,13 @@ namespace Cognigy.Utility
         public CognigyConnectionException() { }
 
         public CognigyConnectionException(ConnectionErrorType connectionErrorType, string message)
-            : base(BuildMessage(connectionErrorType, message))
+            : base(message)
         {
         }
 
         public CognigyConnectionException(string message, Exception inner)
             : base(message, inner)
         {
-        }
-
-        private static string BuildMessage(ConnectionErrorType connectionErrorType, string message)
-        {
-            return string.Format("-- {0} -- {1}", connectionErrorType.ToString(), message);
         }
     }
 }
